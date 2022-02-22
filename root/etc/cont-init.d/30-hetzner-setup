@@ -1,6 +1,6 @@
 #!/usr/bin/with-contenv sh
 
-. /app/cloudflare.sh
+. /app/hetzner.sh
 
 # Load ZONE and SUBDOMAIN vars from Docker Swarm secrets, if available:
 if [ -f "$SUBDOMAIN_FILE" ]; then
@@ -10,47 +10,37 @@ if [ -f "$ZONE_FILE" ]; then
     ZONE=$(cat $ZONE_FILE)
 fi
 
-# Verify the $EMAIL and $API_KEY env variables are valid
+# Verify the $API_KEY env variables are valid
 statusCode=$(verifyToken)
 
 if [ "$statusCode" != "200" ]; then
   echo "----------------------------------------------------------------"
-  echo "ERROR: Invalid CloudFlare Credentials - $statusCode"
+  echo "ERROR: Invalid Hetzner DNS Console Credentials - $statusCode"
   echo "----------------------------------------------------------------"
-  if [ -z "$EMAIL" ]
-    then
-      echo "Make sure the API_KEY is correct. You can"
-      echo "get your scoped CloudFlare API Token here:"
-      echo "https://dash.cloudflare.com/profile/api-tokens"
-    else
-      echo "Make sure the EMAIL and API_KEY variables are correct. You can"
-      echo "get your CloudFlare API Key here:"
-      echo "https://www.cloudflare.com/a/profile"
-      echo
-      echo "If you are using a zone token please remove the EMAIL variable"
-      echo "from this container."
-  fi
+  echo "Make sure the API_KEY is correct. You can"
+  echo "get your Hetzner DNS Console Token here:"
+  echo "https://docs.hetzner.com/dns-console/dns/general/api-access-token"
   echo
   echo "----------------------------------------------------------------"
   exit 1
 fi
 
-# Get the ID of the zone from the CloudFlare API
-CFZoneId=$(getZoneId)
+# Get the ID of the zone from the Hetzner DNS Console API
+HetznerZoneId=$(getZoneId)
 
-if [ "$CFZoneId" == "null" ]; then
+if [ "$HetznerZoneId" == "null" ]; then
   echo "----------------------------------------------------------------"
-  echo "ERROR: Zone for $ZONE was not found in your CloudFlare Account"
+  echo "ERROR: Zone for $ZONE was not found in your Hetzner DNS Console Account"
   echo "----------------------------------------------------------------"
   echo "Make sure the ZONE variable is correct and the domain exists"
-  echo "in your CloudFlare account. You can add a new domain here:"
+  echo "in your Hetzner DNS Console account. You can add a new domain here:"
   echo
-  echo "https://www.cloudflare.com/a/add-site"
+  echo "https://dns.hetzner.com/add-zone"
   echo "----------------------------------------------------------------"
   exit 1
 fi
 
-echo "DNS Zone: $ZONE ($CFZoneId)"
+echo "DNS Zone: $ZONE ($HetznerZoneId)"
 
 # Check we can get the current public ip address
 PublicIpAddress=$(getPublicIpAddress)
@@ -76,24 +66,24 @@ if [ "$PublicIpAddress" == "" ]; then
   exit 1
 fi
 
-# Get the ID of the dns record from the CloudFlare API
-CFDnsRecordName=$(getDnsRecordName)
-CFDnsRecordId=$(getDnsRecordId $CFZoneId $CFDnsRecordName)
+# Get the ID of the dns record from the Hetzner DNS Console API
+HetznerDnsRecordName=$(getDnsRecordName)
+HetznerDnsRecordId=$(getDnsRecordId $HetznerZoneId $HetznerDnsRecordName)
 
 # If the dns record does not exist, create it now.
-if [ "$CFDnsRecordId" == "null" ]; then
-  echo "DNS record for '$CFDnsRecordName' was not found in $ZONE zone. Creating now..."
-  CFDnsRecordId=$(createDnsRecord $CFZoneId $CFDnsRecordName $PublicIpAddress)
+if [ "$HetznerDnsRecordId" == "" ]; then
+  echo "DNS record for '$HetznerDnsRecordName' was not found in $ZONE zone. Creating now..."
+  HetznerDnsRecordId=$(createDnsRecord $HetznerZoneId $HetznerDnsRecordName $PublicIpAddress)
 
-  if [ "$CFDnsRecordId" == "null" ]; then
+  if [ "$HetznerDnsRecordId" == "" ]; then
     echo "----------------------------------------------------------------"
-    echo "ERROR: Failed to create DNS record '$CFDnsRecordName'"
+    echo "ERROR: Failed to create DNS record '$HetznerDnsRecordName'"
     echo "----------------------------------------------------------------"
     exit 1
   fi
 
 fi
 
-echo "DNS Record: $CFDnsRecordName ($CFDnsRecordId)"
-echo "CF_ZONE_ID=\"$CFZoneId\" CF_RECORD_ID=\"$CFDnsRecordId\" CF_RECORD_NAME=\"$CFDnsRecordName\"" > /config/cloudflare.conf
+echo "DNS Record: $HetznerDnsRecordName ($HetznerDnsRecordId)"
+echo "HETZNER_ZONE_ID=\"$HetznerZoneId\" HETZNER_RECORD_ID=\"$HetznerDnsRecordId\" HETZNER_RECORD_NAME=\"$HetznerDnsRecordName\"" > /config/hetzner.conf
 echo "$CRON	/etc/cont-init.d/50-ddns" > /var/spool/cron/crontabs/root

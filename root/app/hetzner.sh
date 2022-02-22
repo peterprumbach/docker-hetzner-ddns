@@ -1,24 +1,15 @@
 #!/usr/bin/with-contenv sh
 
-cloudflare() {
+hetzner() {
   if [ -f "$API_KEY_FILE" ]; then
       API_KEY=$(cat $API_KEY_FILE)
   fi
-  
-  if [ -z "$EMAIL" ]; then
-      curl -sSL \
-      -H "Accept: application/json" \
-      -H "Content-Type: application/json" \
-      -H "Authorization: Bearer $API_KEY" \
-      "$@"
-  else
-      curl -sSL \
-      -H "Accept: application/json" \
-      -H "Content-Type: application/json" \
-      -H "X-Auth-Email: $EMAIL" \
-      -H "X-Auth-Key: $API_KEY" \
-      "$@"
-  fi
+
+  curl -sSL \
+  -H "Accept: application/json" \
+  -H "Content-Type: application/json" \
+  -H "Auth-API-Token: $API_KEY" \
+  "$@"
 }
 
 getLocalIpAddress() {
@@ -67,50 +58,34 @@ getPublicIpAddress() {
   fi
 }
 
-getDnsRecordName() {
-  if [ ! -z "$SUBDOMAIN" ]; then
-    echo $SUBDOMAIN.$ZONE
-  else
-    echo $ZONE
-  fi
+verifyToken() {
+  hetzner -o /dev/null -w "%{http_code}" "$API"/records
 }
 
-verifyToken() {
-  if [ -z "$EMAIL" ]; then
-    cloudflare -o /dev/null -w "%{http_code}" "$CF_API"/user/tokens/verify
-  else
-    cloudflare -o /dev/null -w "%{http_code}" "$CF_API"/user
-  fi
+getDnsRecordName() {
+  echo $SUBDOMAIN
 }
 
 getZoneId() {
-  cloudflare "$CF_API/zones?name=$ZONE" | jq -r '.result[0].id'
+  hetzner "$API/zones?name=$ZONE" | jq -r '.zones[0].id'
 }
 
 getDnsRecordId() {
-  cloudflare "$CF_API/zones/$1/dns_records?type=$RRTYPE&name=$2" | jq -r '.result[0].id'
+  hetzner "$API/records?zone_id=$1" | jq -r ".records[] | select(.name == \"$2\") | select (.type == \"$RRTYPE\") | .id"
 }
 
 createDnsRecord() {
-  if [[ "$PROXIED" != "true" && "$PROXIED" != "false" ]]; then
-    PROXIED="false"
-  fi
-
-  cloudflare -X POST -d "{\"type\": \"$RRTYPE\",\"name\":\"$2\",\"content\":\"$3\",\"proxied\":$PROXIED,\"ttl\":1 }" "$CF_API/zones/$1/dns_records" | jq -r '.result.id'
+  hetzner -X POST -d "{\"type\": \"$RRTYPE\",\"name\":\"$2\",\"value\":\"$3\",\"zone_id\":\"$1\" }" "$API/records" | jq -r '.record.id'
 }
 
 updateDnsRecord() {
-  if [[ "$PROXIED" != "true" && "$PROXIED" != "false" ]]; then
-    PROXIED="false"
-  fi
-
-  cloudflare -X PATCH -d "{\"type\": \"$RRTYPE\",\"name\":\"$3\",\"content\":\"$4\",\"proxied\":$PROXIED }" "$CF_API/zones/$1/dns_records/$2" | jq -r '.result.id'
+  hetzner -X PUT -d "{\"type\": \"$RRTYPE\",\"name\":\"$3\",\"value\":\"$4\",\"zone_id\":\"$1\" }" "$API/records/$2" | jq -r '.record.id'
 }
 
 deleteDnsRecord() {
-  cloudflare -X DELETE "$CF_API/zones/$1/dns_records/$2" | jq -r '.result.id'
+  hetzner -X DELETE "$API/records/$1"
 }
 
 getDnsRecordIp() {
-  cloudflare "$CF_API/zones/$1/dns_records/$2" | jq -r '.result.content'
+  hetzner "$API/records/$1" | jq -r '.record.value'
 }

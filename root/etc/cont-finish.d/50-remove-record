@@ -1,19 +1,19 @@
 #!/usr/bin/with-contenv sh
 
-[ -f /config/cloudflare.conf ] || exit 0
+[ -f /config/hetzner.conf ] || exit 0
 
-. /app/cloudflare.sh
-. /config/cloudflare.conf
+. /app/hetzner.sh
+. /config/hetzner.conf
 
 if [ "$DELETE_ON_STOP" == "true" ]; then
-  echo "Deleting CloudFlare DNS record $CF_RECORD_NAME..."
+  echo "Deleting Hetzner DNS Console record $HETZNER_RECORD_NAME..."
 
-  update=$(deleteDnsRecord $CF_ZONE_ID $CF_RECORD_ID)
+  update=$(deleteDnsRecord $HETZNER_RECORD_ID)
 
   if [ "$update" == "null" ]; then
-    echo "ERROR: Failed to delete CloudFlare DNS record $CF_RECORD_NAME"
+    echo "ERROR: Failed to delete Hetzner DNS Console record $HETZNER_RECORD_NAME"
   else
-    echo "CloudFlare DNS record $CF_RECORD_NAME deleted successfully."
+    echo "Hetzner DNS Console record $HETZNER_RECORD_NAME deleted successfully."
   fi
 else
   echo "Not going to delete zone record. Deleting the zone record on container stop is disable by default."
