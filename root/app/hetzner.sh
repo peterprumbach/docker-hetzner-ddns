@@ -75,11 +75,11 @@ getDnsRecordId() {
 }
 
 createDnsRecord() {
-  hetzner -X POST -d "{\"type\": \"$RRTYPE\",\"name\":\"$2\",\"value\":\"$3\",\"zone_id\":\"$1\" }" "$API/records" | jq -r '.record.id'
+  hetzner -X POST -d "{\"ttl\": $TTL,\"type\": \"$RRTYPE\",\"name\":\"$2\",\"value\":\"$3\",\"zone_id\":\"$1\" }" "$API/records" | jq -r '.record.id'
 }
 
 updateDnsRecord() {
-  hetzner -X PUT -d "{\"type\": \"$RRTYPE\",\"name\":\"$3\",\"value\":\"$4\",\"zone_id\":\"$1\" }" "$API/records/$2" | jq -r '.record.id'
+  hetzner -X PUT -d "{\"ttl\": $TTL,\"type\": \"$RRTYPE\",\"name\":\"$3\",\"value\":\"$4\",\"zone_id\":\"$1\" }" "$API/records/$2" | jq -r '.record.id'
 }
 
 deleteDnsRecord() {
