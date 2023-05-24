@@ -36,6 +36,7 @@ docker run \
 
 ## Optional Parameters
 
+* `-e TTL=86400` - Set to any Integer (in seconds) to change the Time-To-Live for the created record. Defaults to `86400`.
 * `-e RRTYPE=A` - Set to `AAAA` to use set IPv6 records instead of IPv4 records. Defaults to `A` for IPv4 records.
 * `-e DELETE_ON_STOP` - Set to `true` to have the dns record deleted when the container is stopped. Defaults to `false`.
 * `-e INTERFACE=tun0` - Set to `tun0` to have the IP pulled from a network interface named `tun0`. If this is not supplied the public IP will be used instead. Requires `--network host` run argument.
@@ -79,7 +80,7 @@ services:
 
 ```
 Copyright (C) 2017-2020 oznu
-Copyright (C) 2022 Peter Prumbach
+Copyright (C) 2022-2023 Peter Prumbach
 
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 
