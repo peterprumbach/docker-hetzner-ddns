@@ -3,12 +3,12 @@ name: Docker Multi-Arch Container
 on:
   push:
     branches: 
-      - master
+      - main
     tags:
       - 'v*.*.*'
   pull_request:
     branches: 
-      - master
+      - main
 
 env:
   IMAGE_NAME: ${{ github.repository_owner }}/docker-hetzner-ddns
@@ -33,7 +33,7 @@ jobs:
         id: qemu
         uses: docker/setup-qemu-action@master
         with:
-          platforms: linux/amd64,linux/arm64,linux/arm/v6
+          platforms: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64,linux/386,linux/ppc64le,linux/s390x
 
       - name: Set up Docker Buildx
         id: buildx
