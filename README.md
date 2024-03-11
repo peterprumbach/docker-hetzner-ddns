@@ -21,7 +21,7 @@ docker run \
   -e API_KEY=xxxxxxx \
   -e ZONE=example.com \
   -e SUBDOMAIN=subdomain \
-  ghcr.io/peterprumbach/docker-hetzner-ddns
+  ghcr.io/ptpu/docker-hetzner-ddns
 ```
 
 ## Parameters
@@ -58,7 +58,7 @@ If you need multiple records pointing to your public IP address you can create C
 
 ## IPv6
 
-If you're wanting to set IPv6 records set the envrionment variable `RRTYPE=AAAA`. You will also need to run docker with IPv6 support, or run the container with host networking enabled.
+If you're wanting to set IPv6 records set the environment variable `RRTYPE=AAAA`. You will also need to run docker with IPv6 support, or run the container with host networking enabled.
 
 ## Docker Compose
 
@@ -68,7 +68,7 @@ If you prefer to use [Docker Compose](https://docs.docker.com/compose/):
 version: '3'
 services:
   hetzner-ddns:
-    image: ghcr.io/peterprumbach/docker-hetzner-ddns
+    image: ghcr.io/ptpu/docker-hetzner-ddns
     restart: always
     environment:
       - API_KEY=xxxxxxx
@@ -80,7 +80,7 @@ services:
 
 ```
 Copyright (C) 2017-2020 oznu
-Copyright (C) 2022-2023 Peter Prumbach
+Copyright (C) 2022-2024 ptpu
 
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 

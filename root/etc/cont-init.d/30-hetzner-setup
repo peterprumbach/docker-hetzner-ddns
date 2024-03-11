@@ -85,5 +85,6 @@ if [ "$HetznerDnsRecordId" == "" ]; then
 fi
 
 echo "DNS Record: $HetznerDnsRecordName ($HetznerDnsRecordId)"
+mkdir -p /config
 echo "HETZNER_ZONE_ID=\"$HetznerZoneId\" HETZNER_RECORD_ID=\"$HetznerDnsRecordId\" HETZNER_RECORD_NAME=\"$HetznerDnsRecordName\"" > /config/hetzner.conf
 echo "$CRON	/etc/cont-init.d/50-ddns" > /var/spool/cron/crontabs/root
